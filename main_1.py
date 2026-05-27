@@ -5,17 +5,15 @@ import pygame
 
 from motor import Tablero, BLANCO, NEGRO, NOMBRE_POKEMON
 
-# --------------------------------------------------------------------------
-# Configuracion visual
-# --------------------------------------------------------------------------
-TAM_CASILLA = 80                 # tamano de cada casilla en pixeles
-TABLERO_PX = TAM_CASILLA * 8     # 640 px
-PANEL_PX = 220                   # ancho del panel lateral
-MARGEN = 24                      # margen alrededor del tablero
+
+TAM_CASILLA = 80                 
+TABLERO_PX = TAM_CASILLA * 8     
+PANEL_PX = 220                   
+MARGEN = 24                      
 ANCHO = TABLERO_PX + PANEL_PX + MARGEN * 3
 ALTO = TABLERO_PX + MARGEN * 2
 
-# Colores (RGB)
+
 FONDO = (24, 26, 38)
 PANEL = (38, 41, 58)
 CASILLA_CLARA = (235, 236, 208)
@@ -54,11 +52,9 @@ class JuegoAjedrez:
         self.tablero = Tablero()
         self.seleccion = None
         self.movimientosValidos = []
-        self.finJuego = None  # texto del resultado, o None
+        self.finJuego = None  
 
-    # ------------------------------------------------------------------
-    # Recursos
-    # ------------------------------------------------------------------
+
     def _cargarSprites(self):
         """Carga las imagenes de las piezas y las escala a la casilla."""
         tamPieza = TAM_CASILLA - 12
@@ -71,9 +67,6 @@ class JuegoAjedrez:
                     img = pygame.transform.smoothscale(img, (tamPieza, tamPieza))
                     self.sprites[clave] = img
 
-    # ------------------------------------------------------------------
-    # Coordenadas
-    # ------------------------------------------------------------------
     def _origenTablero(self):
         """Esquina superior izquierda del tablero en pixeles."""
         return MARGEN, MARGEN
@@ -87,9 +80,6 @@ class JuegoAjedrez:
             return int(fila), int(col)
         return None
 
-    # ------------------------------------------------------------------
-    # Dibujo
-    # ------------------------------------------------------------------
     def _dibujarTablero(self):
         """Dibuja las casillas, resaltados, piezas y movimientos."""
         ox, oy = self._origenTablero()
@@ -102,7 +92,7 @@ class JuegoAjedrez:
                 claro = (fila + col) % 2 == 0
                 color = CASILLA_CLARA if claro else CASILLA_OSCURA
 
-                # Resaltar ultimo movimiento
+               
                 if ultimo is not None and ((fila, col) == ultimo[0] or
                                            (fila, col) == ultimo[1]):
                     color = ULTIMO_MOV
@@ -110,7 +100,7 @@ class JuegoAjedrez:
                 pygame.draw.rect(self.ventana, color,
                                  (x, y, TAM_CASILLA, TAM_CASILLA))
 
-        # Resaltar casilla seleccionada
+      
         if self.seleccion is not None:
             f, c = self.seleccion
             x = ox + c * TAM_CASILLA
@@ -118,7 +108,6 @@ class JuegoAjedrez:
             pygame.draw.rect(self.ventana, SELECCION,
                              (x, y, TAM_CASILLA, TAM_CASILLA), 5)
 
-        # Dibujar piezas
         for fila in range(8):
             for col in range(8):
                 pieza = self.tablero.piezaEn(fila, col)
@@ -134,7 +123,7 @@ class JuegoAjedrez:
                 else:
                     self._dibujarPiezaRespaldo(pieza, x, y)
 
-        # Marcar movimientos validos
+       
         for (fila, col) in self.movimientosValidos:
             x = ox + col * TAM_CASILLA + TAM_CASILLA // 2
             y = oy + fila * TAM_CASILLA + TAM_CASILLA // 2
@@ -145,7 +134,6 @@ class JuegoAjedrez:
                 pygame.draw.circle(self.ventana, CAPTURA_ANILLO, (x, y),
                                    TAM_CASILLA // 2 - 4, 5)
 
-        # Borde del tablero
         pygame.draw.rect(self.ventana, ROJO_POKE,
                          (ox - 4, oy - 4, TABLERO_PX + 8, TABLERO_PX + 8), 4)
 
@@ -179,7 +167,6 @@ class JuegoAjedrez:
         self.ventana.blit(sub, (cx, y))
         y += 34
 
-        # Turno
         if self.finJuego is None:
             estado = self.tablero.estadoJuego()
             quien = "BLANCAS" if self.tablero.turno == BLANCO else "NEGRAS"
@@ -203,7 +190,7 @@ class JuegoAjedrez:
         y += 16
         self._dibujarCapturas(cx, y)
 
-        # Ayuda al pie del panel
+     
         ayuda = [
             "Clic: seleccionar / mover",
             "R: reiniciar",
@@ -254,9 +241,7 @@ class JuegoAjedrez:
             lineas.append(actual)
         return lineas or ["-"]
 
-    # ------------------------------------------------------------------
-    # Interaccion
-    # ------------------------------------------------------------------
+
     def _clic(self, x, y):
         """Procesa un clic del raton en la posicion (x,y)."""
         if self.finJuego is not None:
@@ -267,7 +252,7 @@ class JuegoAjedrez:
         fila, col = casilla
         pieza = self.tablero.piezaEn(fila, col)
 
-        # Sin seleccion: elegir pieza propia
+      
         if self.seleccion is None:
             if pieza is not None and pieza.color == self.tablero.turno:
                 self.seleccion = (fila, col)
@@ -276,18 +261,17 @@ class JuegoAjedrez:
 
         fo, co = self.seleccion
 
-        # Clic en la misma pieza: deseleccionar
         if (fila, col) == self.seleccion:
             self._limpiarSeleccion()
             return
 
-        # Clic en otra pieza propia: cambiar seleccion
+       
         if pieza is not None and pieza.color == self.tablero.turno:
             self.seleccion = (fila, col)
             self.movimientosValidos = self.tablero.movimientosPieza(fila, col)
             return
 
-        # Clic en destino valido: mover
+        
         if (fila, col) in self.movimientosValidos:
             self.tablero.mover(fo, co, fila, col)
             self._limpiarSeleccion()
@@ -315,9 +299,7 @@ class JuegoAjedrez:
         self._limpiarSeleccion()
         self.finJuego = None
 
-    # ------------------------------------------------------------------
-    # Bucle principal
-    # ------------------------------------------------------------------
+    
     def ejecutar(self):
         """Bucle principal del juego."""
         corriendo = True
